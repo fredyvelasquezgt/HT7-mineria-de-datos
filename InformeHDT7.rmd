@@ -67,3 +67,42 @@ plot(modelosvm,train,data.SalePrice~data.GrLivArea)
 Al graficar nuestro modelo, se observa que poseemos mayor variedad de casas establecidas como caras, ademas que la grafica nos logra representar la clasificacion de las casas, recordemos que al ser aprendizaje no supervisado, la maquina no conoce etiquetas claras de los datos, por ello el algoritmo SVM nos permite clasificar las casas dependiendo de argumentos, en este caso como se muestra en la grafica, se evaluo mediante GrLiveArea y SalePrice.
 
 ```{r}
+
+
+#Modelos
+modeloSVM_L<-svm(data.Estado~., data=train, cost=0.5, kernel="linear")#95%
+modeloSVM_R<-svm(data.Estado~., data=train, gamma=2^-5, kernel="radial")
+modeloSVM_R<-svm(data.Estado~., data=train, gamma=2^1, kernel="radial")
+#Prediccion
+prediccionL<-predict(modeloSVM_L,newdata=test[,1:4])
+prediccionR<-predict(modeloSVM_R,newdata=test[,1:4])
+#Modelo tuneado
+modeloTuneado<-tune.svm(data.Estado~., data=train, cost=c(0.01,0.1,0.5,1,5,10,16,20,32), kernel="linear")
+predMejorModelo<-predict(modeloTuneado$best.model,newdata = test[,1:4])
+
+
+
+
+Se crearon los modelos con distintos C, Kernel y Gammas, con el fin de demostrar la diferencia entre cada uno, cabe mencionar, que tambien se tuneo un modelo, para optimizar el resultado. 
+
+#### Primer modelo
+{r}
+confusionMatrix(test$data.Estado,prediccionL)
+
+Como se observa este modelo tuvo una C de 0.5 y fue evaluado con un kernel lineal, dando como resultado una prediccion con precision de 0.9795, siendo esta muy alta, y cabe mencionar que como se observa esta no tuvo overfitting, ya que la precision no dio 1. Ademas, solo tuvo 9 casas erroneas, demostrando que fue una buena prediccion. 
+
+#### Segundo Modelo
+{R}
+confusionMatrix(test$data.Estado,prediccionR)
+
+
+Este segundo modelo se creo con una gamma de 2^-5 y kernel radial, obteniendo una precision de 0.93, siendo esta mas baja que la anterior, teniendo 29 casas erroneas. Indicando que este modelo no fue el mejor de todos, ademas se observa que tampoco tiene overfitting.
+
+#### Tercer modelo tuneado
+
+{r}
+confusionMatrix(test$data.Estado,predMejorModelo)
+
+```
+
+Para este modelo fue necesario tunearlo, esto fue mediante distintos valores de C, el cual atraves de iteracion iba alternando de C encontrando el valor mas optimo, en este caso se uso valores de C de 0.01,0.1,0.5,1,5,10,16,20,32 y con un kernel lineal. Obteniendo como resultado una precision de 0.9841, siendo esta la precision mas alta de los otros dos modelos, esto gracias al tuneo realizado. Y nuevamente como se observa no tiene overfitting ya que el valor devuelto no es 1.
